@@ -5,6 +5,7 @@ Tags: fly plugins,MemberMouse,wp courseware,wpcourseware,lms,lms for wordpress,l
 Requires at least: 3.0
 Tested up to: 3.6.1
 Stable tag: 1.0
+License: GPLv2 or later
 
 This plugin adds integration between MemberMouse and WP Courseware which allows you to assign course(s) to bundles for auto enrollment.
 
