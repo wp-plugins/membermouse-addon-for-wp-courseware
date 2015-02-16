@@ -1,31 +1,31 @@
 <?php
 /*
  * Plugin Name: WP Courseware - MemberMouse Add On
- * Version: 1.0
+ * Version: 1.1
  * Plugin URI: http://flyplugins.com
  * Description: The official extension for <strong>WP Courseware</strong> to add support for the <strong>MemberMouse membership plugin</strong> for WordPress.
  * Author: Fly Plugins
  * Author URI: http://flyplugins.com
  */
-/*
- Copyright 2013 Fly Plugins - LightHouse Media, LLC
-
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
-
- http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
- */
-
 
 // Main parent class
 include_once 'class_members.inc.php';
+
+function wpcw_mm_db_cleanup(){
+		global $wpdb;
+		$bundle_list = MM_Bundle::getBundlesList();
+
+		if(!empty($bundle_list)){
+			foreach ($bundle_list as $bundle_id => $bundle_name){
+
+			$new_bundle_id = "b" . $bundle_id;
+
+			$do_it = $wpdb->get_var( $wpdb->prepare( "UPDATE {$wpdb->prefix}wpcw_member_levels SET member_level_id = '%s' WHERE member_level_id = '%d'", $new_bundle_id , $bundle_id ));
+
+			}
+		}
+	}
+	register_activation_hook( __FILE__, 'wpcw_mm_db_cleanup' );
 
 // Hook to load the class
 // Set to priority of 1 so that it works correctly with MemberMouse
@@ -86,25 +86,41 @@ class WPCW_Members_MemberMouse extends WPCW_Members
 	 */
 	protected function getMembershipLevels()
 	{
-		$levelData = MM_Bundle::getBundlesList();
-		if (!empty($levelData))
-		{
-			$levelDataStructured = array();
-			
+		$bundle_list = MM_Bundle::getBundlesList();
+
+		$member_list = MM_MembershipLevel::getMembershipLevelsList($activeStatusOnly=true);
+
+		$levelDataStructured = array();
+
+		if (!empty($bundle_list))
+		{	
 			// Format the data in a way that we expect and can process
-			foreach ($levelData as $bundleID => $bundleName)
+			foreach ($bundle_list as $bundleID => $bundleName)
 			{
 				$levelItem = array();
-				$levelItem['name'] 	= $bundleName;
-				$levelItem['id'] 	= $bundleID;
-				$levelItem['raw'] 	= array($bundleID => $bundleName);
+				$levelItem['name'] 	= $bundleName . ' - Bundle';
+				$levelItem['id'] 	= 'b' . $bundleID;
+				//$levelItem['raw'] 	= array($bundleID => $bundleName);
 								
-				$levelDataStructured[$bundleID] = $levelItem;
+				$levelDataStructured[$levelItem['id']] = $levelItem;
 			}
-			
-			return $levelDataStructured;
+		}
+
+		if (!empty($member_list)){
+
+			foreach ($member_list as $membership_level => $level_name)
+			{
+				$levelItem = array();
+				$levelItem['name'] 	= $level_name . ' - Membership Level';
+				$levelItem['id'] 	= 'm' . $membership_level;
+				$levelDataStructured[$levelItem['id']] = $levelItem;
+			}
 		}
 		
+		if (!empty($levelDataStructured)){
+			return $levelDataStructured;
+		}
+
 		return false;
 	}
 
@@ -123,6 +139,76 @@ class WPCW_Members_MemberMouse extends WPCW_Members
 		add_action('mm_bundles_status_change', 		array($this, 'handle_updateUserCourseAccess'), 10, 1);
 	}
 	
+	/**
+	 * Assign selected courses to members of a paticular level.
+	 * @param Level ID in which members will get courses enrollment adjusted.
+	 */
+	protected function retroactive_assignment($level_ID)
+    {
+    	global $wpdb;
+
+    	$page = new PageBuilder(false);
+
+		$check_level_type = substr($level_ID,-2,1);
+
+		$membership_type_id = substr($level_ID,-1);
+
+		if ($check_level_type === 'm'){
+
+			$SQL = "SELECT wp_user_id
+			FROM mm_user_data
+			WHERE membership_level_id = $membership_type_id";
+
+			$members = $wpdb->get_results($SQL,ARRAY_A);
+
+			$member_id = 'wp_user_id';
+		}else{
+
+			$SQL = "SELECT access_type_id
+			FROM mm_applied_bundles
+			WHERE access_type = 'user' AND bundle_id = $membership_type_id";
+
+			$members = $wpdb->get_results($SQL,ARRAY_A);
+
+			$member_id = 'access_type_id';
+		}
+
+		if ($members){
+
+			foreach ($members as $member){
+
+				$user = new MM_User($member[$member_id]);
+				$userLevels = array();
+				$appliedBundles = $user->getAppliedBundles();
+				$membershipLevelID = $user->getMembershipID();
+
+				if ($appliedBundles){
+					foreach($appliedBundles as $appliedBundle){	
+					// Generate a list of the bundle IDs to apply.
+						$userLevels[] = 'b' . $appliedBundle->getBundleId();	
+					}
+
+					$key = count($appliedBundles);
+					$userLevels[$key] = 'm' . $membershipLevelID;
+
+				}else{
+
+					$userLevels[] = $membershipLevelID;
+
+				}
+
+				parent::handle_courseSync($member[$member_id], $userLevels);
+			}
+
+		$page->showMessage(__('All members were successfully retroactively enrolled into the selected courses.', 'wp_courseware'));
+            
+        return;
+
+		}else{
+			$page->showMessage(__('No existing customers found for the specified level/bundle.', 'wp_courseware'));
+		}
+
+    }
 
 	/**
 	 * Function just for handling the membership callback, to interpret the parameters
@@ -142,17 +228,24 @@ class WPCW_Members_MemberMouse extends WPCW_Members
 			// ### 1 - Only get active bundles
 			$appliedBundles = $user->getAppliedBundles();
 
+			//$userMemberType = new MM_MembershipLevel($user->getMembershipId());
+			$userMemberType = $memberDetails['membership_level'];
+
 			if (!empty($appliedBundles))
 			{
-				foreach($appliedBundles as $appliedBundle)	
-				{	
+				foreach($appliedBundles as $appliedBundle){	
 					// Generate a list of the bundle IDs to apply.
-					$userLevels[] = $appliedBundle->getBundleId();	
+					$userLevels[] = 'b' . $appliedBundle->getBundleId();	
 				}
+
+				$key = count($appliedBundles);
+				$userLevels[$key] = 'm' . $userMemberType;
+
+			}else{
+				$userLevels[] = 'm' . $userMemberType;
 			}
-			
+
 		}
-		
 		// Over to the parent class to handle the sync of data.
 		parent::handle_courseSync($memberDetails['member_id'], $userLevels);
 	}
