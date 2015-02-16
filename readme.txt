@@ -8,13 +8,13 @@ Stable tag: 1.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-This plugin adds integration between MemberMouse and WP Courseware which allows you to assign course(s) to bundles and/or membership levels for automatic enrollment.
+Add integration between MemberMouse and WP Courseware which allows you to assign course(s) to bundles and/or membership levels for auto enrollment.
 
 == Description ==
 [Fly Plugins](http://flyplugins.com) presents [MemberMouse](http://flyplugins.com/membermouse) for [WP Courseware](http://wpcourseware.com).
 
 = Have you ever wanted to sell an online internet course or ecourse? =
-The MemberMouse Addon for WP Courseware will add full integration with WP Courseware. It will allow you to assign WP Courseware courses to a bundle and/or membership level. Once the course(s) are assigned to a bundle and/or membership level, upon purchase of a product and registration, a student will automatically be enrolled into the associated course(s).
+The MemberMouse Addon for WP Courseware will add full integration with WP Courseware. It will allow you to assign WP Courseware course(s) to a bundle and/or membership level. Once the course(s) are assigned to a bundle and/or membership level, upon purchase of a product and registration, a student will automatically be enrolled into the associated course(s).
 
 With this addon, you will be able to create a fully automated LMS system which you can sell online, or if you choose to run a free online course, you can do so with ease.
 
@@ -25,7 +25,7 @@ With this addon, you will be able to create a fully automated LMS system which y
 1. Create a course with WP Courseware and add module(s), unit(s), and quiz(zes)
 2. Add units to modules, and add quizzes to units with in modules
 3. Create a course outline page using [shortcode]
-4. Create a product, set a price and a create a bundle with a product
+4. Create a product as a bundle or membership level and assign a price
 5. Associate one or more WP Courseware courses with the bundle and/or membership level
 6. New student pays for the product, and WP Courseware enrolls them to the appropriate course(s) based on purchased product
 
@@ -45,7 +45,7 @@ This is not an actual membership plugin. It is only the integration, or “middl
 
 1. Upload the `MemberMouse for WP Courseware addon` folder into the `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Configure the plugin by going into Training Courses-->MemberMouse, then associate courses with bundles (this assumes you already have courses and bundles created).
+1. Configure the plugin by going into Training Courses-->MemberMouse, then associate courses with bundles and/or membership levels (this assumes you already have courses and products created).
 
 == Frequently asked questions ==
 
@@ -82,4 +82,3 @@ Click here to get [MemberMouse](http://flyplugins.com/membermouse).
 
 
 == Upgrade notice ==
-
