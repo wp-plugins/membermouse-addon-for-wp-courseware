@@ -193,7 +193,7 @@ class WPCW_Members_MemberMouse extends WPCW_Members
 
 				}else{
 
-					$userLevels[] = $membershipLevelID;
+					$userLevels[] = 'm' . $membershipLevelID;
 
 				}
 

@@ -4,7 +4,7 @@ Donate link: http://flyplugins.com/donate
 Tags: fly plugins,MemberMouse,wp courseware,wpcourseware,lms,lms for wordpress,learning management system,online ecourse,ecourse,flyplugins,wordpress learning management system
 Requires at least: 3.8
 Tested up to: 4.1
-Stable tag: 1.1
+Stable tag: 1.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -72,6 +72,9 @@ Click here to get [MemberMouse](http://flyplugins.com/membermouse).
 2. This is the actual configuration screen where you can select courses that will be associated with a particular bundles
 
 == Changelog ==
+
+= 1.2 =
+* Fix: Fixed bug in which retroactive enrollment was not working for courses associated with a membership level
 
 = 1.1 =
 * New: Added the ability to retroactively enroll students to a course when adding a new course to an existing product.
